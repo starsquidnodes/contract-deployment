@@ -1,0 +1,29 @@
+denoms:
+  - name: STAR
+    path: ibc/8B39ED188DBFE8DC4AE80567AEA7E1F18D05845A2D6217492A57583316A194D6
+  - name: SQUID
+    nonce: usquid
+
+contracts:
+  - code: kujira_fin_market
+    label: FIN ${denoms.STAR.name}-${denoms.SQUID.name}
+    msg:
+      denoms:
+        - native: ${denoms.STAR.path}
+        - native: ${denoms.SQUID.path}
+      price_precision:
+        decimal_places: 4
+      decimal_delta: 0
+      fee_taker: "0.0015"
+      fee_maker: "0.00075"
+
+  - code: kujira_bow_pool
+    label: Bow ${denoms.STAR.name}-${denoms.SQUID.name}
+    msg:
+      fin_contract: ${contracts[0].address}
+      intervals:
+        - "0.01"
+        - "0.05"
+      fee: "0.1"
+      amp: "1"
+    funds: 10000000ukuji
