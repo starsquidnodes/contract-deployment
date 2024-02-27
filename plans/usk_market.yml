@@ -1,0 +1,40 @@
+denoms:
+  - name: ATOM
+    nonce: uatom
+
+contracts:
+  - code: kujira_stable_mint
+    label: USK Controller
+    msg:
+      denom: uusk
+    funds: 10000000ukuji
+  
+  - code: kujira_orca
+    label: Orca Market USK-ATOM
+    msg:
+      bid_denom: ${contracts[0].denom}
+      collateral_denom: ${denoms.ATOM.path}
+      bid_threshold: "1000000000"
+      max_slot: 30
+      premium_rate_per_slot: "0.01"
+      waiting_period: 600
+      liquidation_fee: "0.01"
+      withdrawal_fee: "0.005"
+      fee_address: kujira17xpfvakm2amg962yls6f84z3kell8c5lp3pcxh
+
+  - code: kujira_stable_market
+    label: USK Market ATOM
+    msg:
+      stable_denom: ${contracts[0].denom}
+      stable_denom_admin: ${contracts[0].address}
+      collateral_denom: ${denoms.ATOM.path}
+      collateral_denom_decimal_delta: 0
+      oracle_denom: ATOM
+      max_ratio: "0.6"
+      mint_fee: "0.001"
+      interest_rate: "0.001"
+      orca_address: ${contracts[1].address}
+      max_debt: "1000000000000"
+      liquidation_threshold: "1000000000"
+      liquidation_ratio: "0.1"
+      partial_liquidation_target: "0.1"

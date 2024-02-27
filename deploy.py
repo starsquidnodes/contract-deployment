@@ -78,7 +78,7 @@ class Deployer:
             self.codes[name] = Code(source)
 
     def handle_code(self, name):
-        info("handle code", name=name)
+        debug("handle code", name=name)
         code = self.codes.get(name)
         if not code:
             error("code not registered", name=name)
@@ -285,6 +285,7 @@ class Deployer:
         self.denoms[name] = {"name": name, "path": path}
 
     def handle_contract(self, definition):
+        info("handle contract", name=definition["code"])
         template = Template(json.dumps(definition))
         params = {
             "denoms": Class(self.denoms),

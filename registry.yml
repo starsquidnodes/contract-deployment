@@ -31,12 +31,15 @@ kujira_orca:
 kujira_pilot:
   checksum: abc...
   source: kaiyo-1://95
-# kujira_usk_margin_limit:
+# kujira_stable_margin_limit:
 # checksum: abc...
 #   source: kaiyo-1://
-kujira_usk_margin_swap:
+kujira_stable_margin_swap:
   checksum: abc...
   source: kaiyo-1://87
-kujira_usk_market:
+kujira_stable_market:
   checksum: abc...
   source: kaiyo-1://73
+kujira_stable_mint:
+  checksum: abc...
+  source: kaiyo-1://11
