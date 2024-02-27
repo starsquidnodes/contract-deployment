@@ -8,11 +8,11 @@ import json
 import yaml
 import logging
 import sys
-import glob
 import requests
 from mako.template import Template
 import base64
 import time
+from urllib.parse import urlparse
 
 
 class Class:
@@ -42,7 +42,7 @@ class Code:
 
 
 class Deployer:
-    def __init__(self, binary, chain_id, wallet, sources=[]):
+    def __init__(self, binary, chain_id, wallet, api_host):
         info("init deployer", binary=binary, chain_id=chain_id)
 
         self.binary = binary
@@ -52,9 +52,11 @@ class Deployer:
         self.home = os.path.expanduser("~/.pond/kujira1-1")
         self.tmpdir = "/tmp"
 
-        self.api_url = "https://api-kujira.starsquid.io"
+        api_host = api_host.replace("https://", "")
+        self.api_url = f"https://{api_host}"
 
-        self.codes = self.__set_codes(sources)
+        self.codes = {}
+        self.set_codes()
 
         # map of all available code ids deployed in $chain_id
         # {data_hash: code_id}
@@ -66,40 +68,39 @@ class Deployer:
         self.denoms = {}
         self.contracts = []
 
-    def __set_codes(self, sources):
-        codes = {}
+    def set_codes(self):
+        registry = yaml.safe_load(open("./registry.yml", "r").read())
+        for name, values, in registry.items():
+            source = values.get("source")
+            if not source:
+                continue
 
-        code_ids = yaml.safe_load(open("./code_ids.yml", "r").read())
-        for name, id in code_ids.items():
-            codes[name] = Code(f"{self.api_url}/cosmwasm/wasm/v1/code/{id}")
-
-        if not os.path.isdir("./wasm"):
-            error("./wasm not found")
-
-        sources = glob.glob("./wasm/*.wasm") + sources
-
-        for source in sources:
-            name = os.path.basename(source).replace(".wasm", "")
-            codes[name] = Code(source)
-
-        return codes
+            self.codes[name] = Code(source)
 
     def handle_code(self, name):
         info("handle code", name=name)
         code = self.codes.get(name)
         if not code:
-            error("code not found", name=name)
+            error("code not registered", name=name)
 
         code_hash = code.hash
 
         if not code_hash:
-            info("code hash missing")
-            if code.source.startswith("https://"):
-                info("download code from mainnet", url=code.source)
-                response = requests.get(code.source)
+            debug("code hash missing")
 
+            parsed = urlparse(code.source)
+
+            if parsed.scheme == "kaiyo-1":
+                code_id = parsed.netloc
+                if not code_id:
+                    error("code id missing", source=code.source)
+                url = f"{self.api_url}/cosmwasm/wasm/v1/code/{code_id}"
+
+                info("download code from mainnet", id=code_id)
+                debug(url=url)
+
+                response = requests.get(url)
                 response.raise_for_status()
-
                 data = response.json()
 
                 code_hash = data["code_info"]["data_hash"]
@@ -113,7 +114,8 @@ class Deployer:
 
                 code_id = self.code_ids.get(code_hash)
                 if code_id:
-                    info("code already deployed", code_id=code_id)
+                    message = f"code already deployed on {self.chain_id}"
+                    info(message, id=code_id)
                     self.codes[name].id = code_id
                     return
 
@@ -189,7 +191,7 @@ class Deployer:
                 error(result.stderr)
 
         result = json.loads(result.stdout)
-        debug(None, result=result)
+        debug(result=result)
         txhash = result.get("txhash")
         if txhash:
             self.wait_for(txhash)
@@ -197,7 +199,7 @@ class Deployer:
         return result
 
     def wait_for(self, txhash):
-        info("wait for tx", tx=txhash)
+        info("wait for tx", hash=txhash)
         interval = 2
 
         for _ in range(5):
@@ -207,7 +209,9 @@ class Deployer:
                 return
 
     def compute_salt(self, contract):
-        string = f"{self.address} {contract.code} {contract.label}"
+        code = self.codes[contract.code]
+        code_id = self.code_ids[code.hash]
+        string = f"{self.address} {code_id} {contract.label}"
         salt = hashlib.sha256(string.encode("utf-8")).hexdigest()
         return salt
 
@@ -243,7 +247,7 @@ class Deployer:
             contract.msg["owner"] = self.address
 
         info("instantiate contract", name=contract.code, label=contract.label)
-        debug(None, msg=contract.msg)
+        debug(msg=contract.msg)
         code = self.codes[contract.code]
         code_id = self.code_ids[code.hash]
         salt = self.compute_salt(contract)
@@ -260,11 +264,12 @@ class Deployer:
         self.tx(command)
 
     def create_denom(self, nonce):
+        info("create denom", nonce=nonce)
         self.tx(f"denom create-denom {nonce}", ignore_errors=True)
         return f"factory/{self.address}/{nonce}"
 
     def handle_denom(self, params):
-        info("handle denom", **params)
+        info("handle denom", name=params["name"])
         name = params.get("name")
         if not name:
             error("name not found")
@@ -297,7 +302,7 @@ class Deployer:
 
         if config:
             info("contract already exists", address=address)
-            debug(None, config=config)
+            debug(config=config)
             self.add_contract(address, config)
             return
 
@@ -311,32 +316,26 @@ class Deployer:
         config["address"] = address
         self.contracts.append(config)
 
-    def load_blueprint(self, name):
-        filename = f"./blueprints/{name}.yml"
-        if not os.path.isfile(filename):
-            error(f"{filename} not found")
-
-        return yaml.safe_load(open(filename, "r").read())
-
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("planfile")
     parser.add_argument("-d", "--debug", action="store_true")
-    parser.add_argument("-w", "--wasm", nargs="+", default=[])
+    parser.add_argument("--api-host",
+                        default="rest.cosmos.directory/kujira")
     return parser.parse_args()
 
 
-def error(message, **kwargs):
+def error(message=None, **kwargs):
     log(message, logging.ERROR, kwargs)
     sys.exit(1)
 
 
-def debug(message, **kwargs):
+def debug(message=None, **kwargs):
     log(message, logging.DEBUG, kwargs)
 
 
-def info(message, **kwargs):
+def info(message=None, **kwargs):
     log(message, logging.INFO, kwargs)
 
 
@@ -372,7 +371,7 @@ def main():
     logging.addLevelName(logging.WARNING, "WRN")
     logging.addLevelName(logging.ERROR, "ERR")
 
-    deployer = Deployer("kujirad-03985a2", "pond-1", "deployer", args.wasm)
+    deployer = Deployer("kujirad-03985a2", "pond-1", "deployer", args.api_host)
 
     plan = yaml.safe_load(open(args.planfile, "r"))
 

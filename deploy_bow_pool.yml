@@ -5,7 +5,7 @@ denoms:
     nonce: usquid
 
 contracts:
-  - code: kujira_fin_market
+  - code: kujira_fin
     label: FIN ${denoms.STAR.name}-${denoms.SQUID.name}
     msg:
       denoms:
@@ -17,7 +17,7 @@ contracts:
       fee_taker: "0.0015"
       fee_maker: "0.00075"
 
-  - code: kujira_bow_pool
+  - code: kujira_bow_xyk
     label: Bow ${denoms.STAR.name}-${denoms.SQUID.name}
     msg:
       fin_contract: ${contracts[0].address}
