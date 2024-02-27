@@ -322,6 +322,9 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("planfile")
     parser.add_argument("-d", "--debug", action="store_true")
+    parser.add_argument("-b", "--binary", default="kujirad")
+    parser.add_argument("--chain-id", default="pond-1")
+    parser.add_argument("--wallet", default="deployer")
     parser.add_argument("--api-host",
                         default="rest.cosmos.directory/kujira")
     return parser.parse_args()
@@ -372,7 +375,7 @@ def main():
     logging.addLevelName(logging.WARNING, "WRN")
     logging.addLevelName(logging.ERROR, "ERR")
 
-    deployer = Deployer("kujirad-03985a2", "pond-1", "deployer", args.api_host)
+    deployer = Deployer(args.binary, args.chain_id, args.wallet, args.api_host)
 
     plan = yaml.safe_load(open(args.planfile, "r"))
 
