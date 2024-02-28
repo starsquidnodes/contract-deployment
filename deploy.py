@@ -35,21 +35,21 @@ class Contract():
 
 
 class Code:
-    def __init__(self, source):
-        self.hash = None
+    def __init__(self, source, hash=None):
+        self.hash = hash
         self.code = None
         self.source = source
 
 
 class Deployer:
-    def __init__(self, binary, chain_id, wallet, api_host):
+    def __init__(self, binary, chain_id, wallet, home, api_host):
         info("init deployer", binary=binary, chain_id=chain_id)
 
         self.binary = binary
         self.chain_id = chain_id
         self.wallet = wallet
 
-        self.home = os.path.expanduser("~/.pond/kujira1-1")
+        self.home = home
         self.tmpdir = "/tmp"
 
         api_host = api_host.replace("https://", "")
@@ -75,7 +75,9 @@ class Deployer:
             if not source:
                 continue
 
-            self.codes[name] = Code(source)
+            hash = values.get("checksum")
+
+            self.codes[name] = Code(source, hash)
 
     def handle_code(self, name):
         debug("handle code", name=name)
@@ -83,10 +85,8 @@ class Deployer:
         if not code:
             error("code not registered", name=name)
 
-        code_hash = code.hash
-
-        if not code_hash:
-            debug("code hash missing")
+        if not code.code:
+            debug("code missing")
 
             parsed = urlparse(code.source)
 
@@ -121,7 +121,22 @@ class Deployer:
 
                 self.deploy_code(name)
 
-        return code_hash
+        return self.codes[name].hash
+
+    def get_deployed_codes(self):
+        codes = {}
+        for name, code in self.codes.items():
+            if not code.hash:
+                continue
+            id = self.code_ids.get(code.hash)
+            if not id:
+                continue
+            codes[name] = {
+                "hash": code.hash,
+                "id": id
+            }
+
+        return codes
 
     def deploy_code(self, name):
         info("deploy code", name=name)
@@ -320,13 +335,15 @@ class Deployer:
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("planfile")
+    parser.add_argument("planfile", nargs="?")
     parser.add_argument("-d", "--debug", action="store_true")
     parser.add_argument("-b", "--binary", default="kujirad")
     parser.add_argument("--chain-id", default="pond-1")
     parser.add_argument("--wallet", default="deployer")
+    parser.add_argument("--home", default="~/.pond/kujira1-1")
     parser.add_argument("--api-host",
                         default="rest.cosmos.directory/kujira")
+    parser.add_argument("--pond-export", action="store_true")
     return parser.parse_args()
 
 
@@ -375,15 +392,32 @@ def main():
     logging.addLevelName(logging.WARNING, "WRN")
     logging.addLevelName(logging.ERROR, "ERR")
 
-    deployer = Deployer(args.binary, args.chain_id, args.wallet, args.api_host)
+    home = os.path.expanduser(args.home)
 
-    plan = yaml.safe_load(open(args.planfile, "r"))
+    deployer = Deployer(
+        args.binary, args.chain_id, args.wallet, home, args.api_host
+    )
 
-    for denom in plan.get("denoms"):
-        deployer.handle_denom(denom)
+    if args.pond_export:
+        filename = os.path.expanduser("~/.pond/pond.json")
 
-    for contract in plan.get("contracts"):
-        deployer.handle_contract(contract)
+        if not os.path.isfile(filename):
+            error("~/.pond/pond.json does not exist")
+
+        codes = deployer.get_deployed_codes()
+        if codes:
+            data = json.load(open(filename, "r"))
+            data["codes"] = codes
+            json.dump(data, open(filename, "w"))
+
+    if args.planfile:
+        plan = yaml.safe_load(open(args.planfile, "r"))
+
+        for denom in plan.get("denoms"):
+            deployer.handle_denom(denom)
+
+        for contract in plan.get("contracts"):
+            deployer.handle_contract(contract)
 
 
 if __name__ == "__main__":

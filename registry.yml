@@ -1,45 +1,45 @@
 calc:
-  checksum: abc...
+  checksum: DD9761B3E49D34BE18076CFA2BE7AC4F8B3AF65EB13CB8B24E38F9388130C2D2
   source: kaiyo-1://157
 kujira_bow_lsd:
-  checksum: abc...
+  checksum: 715934C48A41A7AEC050A6DEC9A1C957ABF96FFC84F7B8AD3260309749E9A7E9
   source: kaiyo-1://167
 kujira_bow_stable:
-  checksum: abc...
+  checksum: F3B812304F6AECEBD4CE388DA0F5161FD5BE1589C9008C5036258EC89ABCC502
   source: kaiyo-1://166
 kujira_bow_xyk:
-  checksum: abc...
+  checksum: 418CF9A2E005B6B44352DAFE1E8C5998F834F3BACF47497E95E69A3EB2DFAA22
   source: kaiyo-1://126
 kujira_bow_margin:
-  checksum: abc...
+  checksum: 5EEEAEC66D81449EEE7A687C47CBE53AD1571AA9F235CD019BF354F65F3C4610
   source: kaiyo-1://188
 kujira_bow_staking:
-  checksum: abc...
+  checksum: B081C828D3FC8FA658CA9906423BB90744336CCBA5363881A1CDB7449F716AC6
   source: kaiyo-1://244
 kujira_fin:
-  checksum: abc...
+  checksum: 8A6FA03E62DA9CB75F1CB9A4EFEA6AAFA920AD5FCA40A7B335560727BD42C198
   source: kaiyo-1://243
 kujira_ghost_market:
-  checksum: abc...
+  checksum: 575FCBB5F87A8ECBBB1A136D6082880B22F203AA39C51DE501F92CBCA3D86B43
   source: kaiyo-1://186
 kujira_ghost_vault:
-  checksum: abc...
+  checksum: 9FBCDAEFC596C285542DFA443CC33212A544CE4E191D1C5F1EF2F3AC4E2BB3C9
   source: kaiyo-1://140
 kujira_orca:
-  checksum: abc...
+  checksum: 64ECE3AB0E8CD640023FF81E6C7F5CF1C0C19D4CAFA419BD241976B6A714B2A7
   source: kaiyo-1://234
 kujira_pilot:
-  checksum: abc...
+  checksum: A178E33C489142FF5DE8A89261BB3CA86EEFC2FB382DCD57CBB6FB1531D55F46
   source: kaiyo-1://95
 # kujira_stable_margin_limit:
 # checksum: abc...
 #   source: kaiyo-1://
 kujira_stable_margin_swap:
-  checksum: abc...
+  checksum: 2395063CC30A098DB87A7F275C7A8EBFF889E9D40DB18E09CED6921370351DC4
   source: kaiyo-1://87
 kujira_stable_market:
-  checksum: abc...
+  checksum: E9EC73285A3D9E1CED23924D3BA6EA9267B039DA596686EA7AEB1E474415DA13
   source: kaiyo-1://73
 kujira_stable_mint:
-  checksum: abc...
+  checksum: 98CC2EDAA8A5D1AD8CD15EADB6CA8A52267F29142177F105E3C65D0ECFF50C5F
   source: kaiyo-1://11
