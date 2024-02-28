@@ -69,7 +69,10 @@ class Deployer:
         self.contracts = []
 
     def set_codes(self):
-        registry = yaml.safe_load(open("./registry.yml", "r").read())
+        dirname = os.path.dirname(__file__)
+        filename = f"{dirname}/registry.yml"
+
+        registry = yaml.safe_load(open(filename, "r").read())
         for name, values, in registry.items():
             source = values.get("source")
             if not source:
@@ -335,7 +338,7 @@ class Deployer:
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("planfile", nargs="?")
+    parser.add_argument("planfile", nargs="*")
     parser.add_argument("-d", "--debug", action="store_true")
     parser.add_argument("-b", "--binary", default="kujirad")
     parser.add_argument("--chain-id", default="pond-1")
@@ -343,13 +346,17 @@ def parse_args():
     parser.add_argument("--home", default="~/.pond/kujira1-1")
     parser.add_argument("--api-host",
                         default="rest.cosmos.directory/kujira")
-    parser.add_argument("--pond-export", action="store_true")
+    parser.add_argument("--pond-json", default="~/.pond/pond.json")
     return parser.parse_args()
 
 
 def error(message=None, **kwargs):
     log(message, logging.ERROR, kwargs)
     sys.exit(1)
+
+
+def warning(message=None, **kwargs):
+    log(message, logging.WARNING, kwargs)
 
 
 def debug(message=None, **kwargs):
@@ -398,11 +405,13 @@ def main():
         args.binary, args.chain_id, args.wallet, home, args.api_host
     )
 
-    if args.pond_export:
-        filename = os.path.expanduser("~/.pond/pond.json")
+    if args.pond_json:
+        filename = os.path.expanduser(args.pond_json)
+        debug("update pond info", file=filename)
 
         if not os.path.isfile(filename):
-            error("~/.pond/pond.json does not exist")
+            warning("file not found", file=filename)
+            return
 
         codes = deployer.get_deployed_codes()
         if codes:
@@ -410,8 +419,23 @@ def main():
             data["codes"] = codes
             json.dump(data, open(filename, "w"))
 
-    if args.planfile:
-        plan = yaml.safe_load(open(args.planfile, "r"))
+    if not args.planfile:
+        return
+
+    planfiles = []
+
+    if isinstance(args.planfile, str):
+        planfiles = [args.planfile]
+
+    if isinstance(args.planfile, list):
+        planfiles = args.planfile
+
+    for planfile in planfiles:
+        print(planfile)
+        plan = yaml.safe_load(open(planfile, "r"))
+
+        # reset contract config
+        deployer.contracts = []
 
         for denom in plan.get("denoms"):
             deployer.handle_denom(denom)
