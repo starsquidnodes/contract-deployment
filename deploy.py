@@ -13,6 +13,7 @@ from mako.template import Template
 import base64
 import time
 from urllib.parse import urlparse
+import glob
 
 
 class Class:
@@ -424,11 +425,11 @@ def main():
 
     planfiles = []
 
-    if isinstance(args.planfile, str):
-        planfiles = [args.planfile]
-
-    if isinstance(args.planfile, list):
-        planfiles = args.planfile
+    for string in args.planfile:
+        if os.path.isdir(string):
+            planfiles += glob.glob(f"{string}/*.yml")
+        elif os.path.isfile(string):
+            planfiles.append(string)
 
     for planfile in planfiles:
         print(planfile)
