@@ -167,7 +167,7 @@ class Deployer:
 
         if extra:
             command += [
-                "--node", "http://127.0.0.1:10157",
+                # "--node", "http://127.0.0.1:10157",
                 "--chain-id", self.chain_id, "--output", "json",
             ]
 
@@ -192,7 +192,7 @@ class Deployer:
         command = [
             self.binary, "--home", self.home, "tx"
         ] + args + [
-            "--node", "http://127.0.0.1:10157",
+            # "--node", "http://127.0.0.1:10157",
             "--chain-id", self.chain_id, "--output", "json",
             "--from", self.wallet, "--keyring-backend", "test",
             "--gas", "auto", "--gas-adjustment", "2", "--yes",
