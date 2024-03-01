@@ -43,7 +43,7 @@ class Code:
 
 
 class Deployer:
-    def __init__(self, binary, chain_id, wallet, home, api_host):
+    def __init__(self, binary, chain_id, wallet, home, api_host, node):
         info("init deployer", binary=binary, chain_id=chain_id)
 
         self.binary = binary
@@ -51,6 +51,7 @@ class Deployer:
         self.wallet = wallet
 
         self.home = home
+        self.node = node
         self.tmpdir = "/tmp"
 
         api_host = api_host.replace("https://", "")
@@ -168,9 +169,11 @@ class Deployer:
 
         if extra:
             command += [
-                # "--node", "http://127.0.0.1:10157",
                 "--chain-id", self.chain_id, "--output", "json",
             ]
+
+            if self.node:
+                command += ["--node", self.node]
 
         debug(" ".join(command))
 
@@ -193,11 +196,13 @@ class Deployer:
         command = [
             self.binary, "--home", self.home, "tx"
         ] + args + [
-            # "--node", "http://127.0.0.1:10157",
             "--chain-id", self.chain_id, "--output", "json",
             "--from", self.wallet, "--keyring-backend", "test",
             "--gas", "auto", "--gas-adjustment", "2", "--yes",
         ]
+
+        if self.node:
+            command += ["--node", self.node]
 
         debug("send transaction", command=" ".join(command))
 
@@ -345,6 +350,7 @@ def parse_args():
     parser.add_argument("--chain-id", default="pond-1")
     parser.add_argument("--wallet", default="deployer")
     parser.add_argument("--home", default="~/.pond/kujira1-1")
+    parser.add_argument("--node")
     parser.add_argument("--api-host",
                         default="rest.cosmos.directory/kujira")
     parser.add_argument("--pond-json", default="~/.pond/pond.json")
@@ -403,7 +409,7 @@ def main():
     home = os.path.expanduser(args.home)
 
     deployer = Deployer(
-        args.binary, args.chain_id, args.wallet, home, args.api_host
+        args.binary, args.chain_id, args.wallet, home, args.api_host, args.node
     )
 
     planfiles = []
