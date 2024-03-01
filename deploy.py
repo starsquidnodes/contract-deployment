@@ -406,23 +406,6 @@ def main():
         args.binary, args.chain_id, args.wallet, home, args.api_host
     )
 
-    if args.pond_json:
-        filename = os.path.expanduser(args.pond_json)
-        debug("update pond info", file=filename)
-
-        if not os.path.isfile(filename):
-            warning("file not found", file=filename)
-            return
-
-        codes = deployer.get_deployed_codes()
-        if codes:
-            data = json.load(open(filename, "r"))
-            data["codes"] = codes
-            json.dump(data, open(filename, "w"))
-
-    if not args.planfile:
-        return
-
     planfiles = []
 
     for string in args.planfile:
@@ -443,6 +426,20 @@ def main():
 
         for contract in plan.get("contracts"):
             deployer.handle_contract(contract)
+
+    if args.pond_json:
+        filename = os.path.expanduser(args.pond_json)
+        debug("update pond info", file=filename)
+
+        if not os.path.isfile(filename):
+            warning("file not found", file=filename)
+            return
+
+        codes = deployer.get_deployed_codes()
+        if codes:
+            data = json.load(open(filename, "r"))
+            data["codes"] = codes
+            json.dump(data, open(filename, "w"))
 
 
 if __name__ == "__main__":
