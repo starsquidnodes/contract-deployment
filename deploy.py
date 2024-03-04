@@ -44,7 +44,7 @@ class Code:
 
 class Deployer:
     def __init__(self, binary, chain_id, wallet, home, api_host, node):
-        info("init deployer", binary=binary, chain_id=chain_id)
+        debug("init deployer", binary=binary, chain_id=chain_id)
 
         self.binary = binary
         self.chain_id = chain_id
@@ -101,7 +101,7 @@ class Deployer:
                     error("code id missing", source=code.source)
                 url = f"{self.api_url}/cosmwasm/wasm/v1/code/{code_id}"
 
-                info("download code from mainnet", id=code_id)
+                info("download code from mainnet", id=code_id, name=name)
                 debug(url=url)
 
                 response = requests.get(url)
@@ -293,7 +293,7 @@ class Deployer:
         return f"factory/{self.address}/{nonce}"
 
     def handle_denom(self, params):
-        info("handle denom", name=params["name"])
+        debug("handle denom", name=params["name"])
         name = params.get("name")
         if not name:
             error("name not found")
@@ -309,7 +309,8 @@ class Deployer:
         self.denoms[name] = {"name": name, "path": path}
 
     def handle_contract(self, definition):
-        info("handle contract", name=definition["code"])
+        name = definition["code"]
+        debug("handle contract", name=name)
         template = Template(json.dumps(definition))
         params = {
             "denoms": Class(self.denoms),
@@ -326,7 +327,7 @@ class Deployer:
         config = self.get_contract_config(address)
 
         if config:
-            info("contract already exists", address=address)
+            info("contract already exists", name=name, address=address)
             debug(config=config)
             self.add_contract(address, config)
             return
