@@ -68,7 +68,7 @@ class Deployer:
         self.address = "kujira1k3g54c2sc7g9mgzuzaukm9pvuzcjqy92nk9wse"
 
         self.denoms = {}
-        self.contracts = []
+        self.contracts = {}
 
     def set_codes(self):
         dirname = os.path.dirname(__file__)
@@ -309,12 +309,13 @@ class Deployer:
         self.denoms[name] = {"name": name, "path": path}
 
     def handle_contract(self, definition):
-        name = definition["code"]
-        debug("handle contract", name=name)
+        code = definition["code"]
+        name = definition["name"]
+        debug("handle contract", code=code)
         template = Template(json.dumps(definition))
         params = {
             "denoms": Class(self.denoms),
-            "contracts": [Class(x) for x in self.contracts],
+            "contracts": Class(self.contracts),
         }
 
         rendered = template.render(**params)
@@ -327,20 +328,20 @@ class Deployer:
         config = self.get_contract_config(address)
 
         if config:
-            info("contract already exists", name=name, address=address)
+            info("contract already exists", code=code, address=address)
             debug(config=config)
-            self.add_contract(address, config)
+            self.add_contract(name, config, address)
             return
 
         debug("contract not found", address=address)
 
         self.instantiate_contract(contract)
         config = self.get_contract_config(address)
-        self.add_contract(address, config)
+        self.add_contract(name, config, address)
 
-    def add_contract(self, address, config):
+    def add_contract(self, name, config, address):
         config["address"] = address
-        self.contracts.append(config)
+        self.contracts[name] = config
 
 
 def parse_args():
@@ -425,7 +426,7 @@ def main():
         plan = yaml.safe_load(open(planfile, "r"))
 
         # reset contract config
-        deployer.contracts = []
+        deployer.contracts = {}
 
         for denom in plan.get("denoms"):
             deployer.handle_denom(denom)

@@ -1,26 +1,28 @@
 denoms:
-  - name: STAR
+  - name: ATOM
     path: ibc/8B39ED188DBFE8DC4AE80567AEA7E1F18D05845A2D6217492A57583316A194D6
-  - name: SQUID
-    nonce: usquid
+  - name: EUK
+    nonce: ueuk
 
 contracts:
-  - code: kujira_fin
-    label: FIN ${denoms.STAR.name}-${denoms.SQUID.name}
+  - name: fin_atom_euk
+    code: kujira_fin
+    label: FIN ATOM-EUK
     msg:
       denoms:
-        - native: ${denoms.STAR.path}
-        - native: ${denoms.SQUID.path}
+        - native: ${denoms.ATOM.path}
+        - native: ${denoms.EUK.path}
       price_precision:
         decimal_places: 4
       decimal_delta: 0
       fee_taker: "0.0015"
       fee_maker: "0.00075"
 
-  - code: kujira_bow_xyk
-    label: Bow ${denoms.STAR.name}-${denoms.SQUID.name}
+  - name: bow_atom_euk
+    code: kujira_bow_xyk
+    label: Bow ATOM-EUK
     msg:
-      fin_contract: ${contracts[0].address}
+      fin_contract: ${contracts.fin_atom_euk.address}
       intervals:
         - "0.01"
         - "0.05"
