@@ -332,7 +332,7 @@ class Deployer:
             self.add_contract(address, config)
             return
 
-        info("contract not found", address=address)
+        debug("contract not found", address=address)
 
         self.instantiate_contract(contract)
         config = self.get_contract_config(address)
@@ -422,7 +422,6 @@ def main():
             planfiles.append(string)
 
     for planfile in planfiles:
-        print(planfile)
         plan = yaml.safe_load(open(planfile, "r"))
 
         # reset contract config
