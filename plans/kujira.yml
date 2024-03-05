@@ -1,0 +1,128 @@
+denoms:
+  - name: KUJI
+    path: ukuji
+  - name: USK
+    nonce: uusk
+  # Token for stable pairing
+  - name: USDC
+    nonce: uusdc
+  # Token with 18dp for testing decimal deltas
+  - name: ETH
+    nonce: aeth
+  # Token for LSD pairing
+  - name: stETH
+    path: astheth
+
+contracts:
+  - name: kujira_fin_kuji_usk
+    code: kujira_fin
+    label: FIN KUJI-USK
+    msg:
+      denoms:
+        - native: ${denoms.KUJI.path}
+        - native: ${denoms.USK.path}
+      price_precision:
+        decimal_places: 4
+      decimal_delta: 0
+      fee_taker: "0.0015"
+      fee_maker: "0.00075"
+
+  - name: kujira_bow_kuji_usk
+    code: kujira_bow_xyk
+    label: BOW KUJI-USK
+    funds: 10000000ukuji
+    msg:
+      fin_contract: ${contracts.kujira_fin_kuji_usk.address}
+      intervals:
+        - "0.01"
+        - "0.05"
+      fee: "0.1"
+      amp: "1"
+
+  - name: kujira_fin_steth_eth
+    code: kujira_fin
+    label: FIN stETH-ETH
+    msg:
+      denoms:
+        - native: ${denoms.stETH.path}
+        - native: ${denoms.ETH.path}
+      price_precision:
+        decimal_places: 4
+      decimal_delta: 0
+      fee_taker: "0.0015"
+      fee_maker: "0.00075"
+
+  - name: kujira_bow_steth_eth
+    code: kujira_bow_lsd
+    label: BOW stETH-ETH
+    funds: 10000000ukuji
+    msg:
+      fin_contract: ${contracts.kujira_fin_steth_eth.address}
+      adapter:
+        oracle:
+          - denom: STETH
+            decimals: 6
+          - denom: ETH
+            decimals: 6
+      strategy:
+        bid_fee: "0.005"
+        bid_factor: "0.001"
+        bid_utilization: "0.8"
+        bid_count: 20
+        ask_fee: "0.001"
+        ask_utilization: "1"
+
+  - name: kujira_fin_eth_usk
+    code: kujira_fin
+    label: FIN ETH-USK
+    msg:
+      denoms:
+        - native: ${denoms.ETH.path}
+        - native: ${denoms.USK.path}
+      price_precision:
+        decimal_places: 4
+      decimal_delta: 12
+      fee_taker: "0.0015"
+      fee_maker: "0.00075"
+
+  - name: kujira_bow_eth_usk
+    code: kujira_bow_xyk
+    label: BOW ETH-USK
+    funds: 10000000ukuji
+    msg:
+      fin_contract: ${contracts.kujira_fin_eth_usk.address}
+      intervals:
+        - "0.01"
+        - "0.05"
+      fee: "0.1"
+      amp: "1"
+
+  - name: kujira_fin_usdc_usk
+    code: kujira_fin
+    label: FIN USDC-USK
+    msg:
+      denoms:
+        - native: ${denoms.USDC.path}
+        - native: ${denoms.USK.path}
+      price_precision:
+        decimal_places: 6
+      decimal_delta: 0
+      fee_taker: "0.0015"
+      fee_maker: "0.00075"
+
+  - name: kujira_bow_usdc_usk
+    code: kujira_bow_stable
+    label: BOW USDC-USK
+    funds: 10000000ukuji
+    msg:
+      fin_contract: ${contracts.kujira_fin_usdc_usk.address}
+      strategy:
+        target_price: "1"
+        ask_fee: "0.0005"
+        ask_factor: "0.001"
+        ask_utilization: "0.8"
+        ask_count: 15
+        bid_fee: "0.0005"
+        bid_factor: "0.001"
+        bid_utilization: "0.8"
+        bid_count: 15

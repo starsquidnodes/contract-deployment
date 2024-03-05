@@ -224,9 +224,9 @@ class Deployer:
 
     def wait_for(self, txhash):
         info("wait for tx", hash=txhash)
-        interval = 2
+        interval = 0.5
 
-        for _ in range(5):
+        for _ in range(20):
             time.sleep(interval)
             result = self.q(f"tx {txhash}", ignore_errors=True)
             if result:
